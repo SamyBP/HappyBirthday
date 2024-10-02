@@ -4,3 +4,5 @@
 __pycache__
 client-secret.json
 token.json
+data.json
+PyWhatKit_DB.txt
