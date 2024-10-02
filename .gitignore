@@ -1,4 +1,6 @@
 .idea
 .venv
+.env
 __pycache__
 client-secret.json
+token.json
