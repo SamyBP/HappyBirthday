@@ -1,13 +1,15 @@
-import json
-import os.path
+import os
+import pywhatkit
+
 from datetime import datetime
 
-import pywhatkit
 from google.oauth2.credentials import Credentials
 from google.auth.transport.requests import Request
 from google_auth_oauthlib.flow import InstalledAppFlow
 from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
+
+from dotenv import load_dotenv
 
 SCOPES = ['https://www.googleapis.com/auth/contacts.readonly']
 
@@ -54,13 +56,12 @@ def celebrates_birthday(date, current_date):
 
 if __name__ == "__main__":
     try:
+        load_dotenv()
         credentials = get_credentials("token.json", "client-secret.json")
         people_service = get_people_service(credentials)
         contacts = get_contacts(people_service)
         cdt = datetime.now()
         msg = os.getenv("MESSAGE_TO_SEND")
-        with open("data.json", "w") as data_file:
-            json.dump(contacts, data_file)
         for contact in contacts:
             names = contact.get("names", [])
             birthdays = contact.get("birthdays", [])
