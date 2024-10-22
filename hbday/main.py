@@ -35,17 +35,27 @@ def get_people_service(creds):
 
 
 def get_contacts(service):
-    results = (
-        service.people()
-        .connections()
-        .list(
-            resourceName="people/me",
-            pageSize=60,
-            personFields="names,birthdays,phoneNumbers",
+    contact_list = []
+    page_token = None
+
+    while True:
+        results = (
+            service.people()
+            .connections()
+            .list(
+                resourceName="people/me",
+                pageSize=10,
+                personFields="names,birthdays,phoneNumbers",
+                pageToken=page_token
+            )
+            .execute()
         )
-        .execute()
-    )
-    return results.get("connections", [])
+        connections = results.get("connections", [])
+        contact_list.extend(connections)
+        page_token = results.get("nextPageToken", None)
+        if not page_token:
+            break
+    return contact_list
 
 
 def celebrates_birthday(date, current_date):
