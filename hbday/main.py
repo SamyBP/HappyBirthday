@@ -57,7 +57,7 @@ def celebrates_birthday(date, current_date):
 if __name__ == "__main__":
     try:
         load_dotenv()
-        credentials = get_credentials("token.json", "client-secret.json")
+        credentials = get_credentials("../token.json", "../client-secret.json")
         people_service = get_people_service(credentials)
         contacts = get_contacts(people_service)
         cdt = datetime.now()
