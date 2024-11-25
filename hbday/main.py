@@ -1,5 +1,3 @@
-import pywhatkit
-
 from models.date import Date
 from services.contact_service import get_contacts
 from services.google_service import build_google_service, signin

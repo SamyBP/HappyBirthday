@@ -10,7 +10,7 @@ class Contact:
     birthdate: Date
 
     @classmethod
-    def create(cls, response: dict) -> "Contact":
+    def map(cls, response: dict) -> "Contact":
         return cls(
             name=response["names"][0]["givenName"],
             phone_number=response["phoneNumbers"][0]["canonicalForm"],

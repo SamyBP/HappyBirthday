@@ -39,8 +39,8 @@ request_parameters = {
 }
 
 
-def send_request(google, next_page_token=None) -> dict:
-    if next_page_token:
-        request_parameters['pageToken'] = next_page_token
+def fetch_from_page(google, page_token=None) -> dict:
+    if page_token:
+        request_parameters['pageToken'] = page_token
 
     return google.people().connections().list(**request_parameters).execute()
