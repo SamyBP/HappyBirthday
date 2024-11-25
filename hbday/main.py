@@ -1,87 +1,19 @@
-import os
 import pywhatkit
 
-from datetime import datetime
-
-from google.oauth2.credentials import Credentials
-from google.auth.transport.requests import Request
-from google_auth_oauthlib.flow import InstalledAppFlow
-from googleapiclient.discovery import build
-from googleapiclient.errors import HttpError
-
-from dotenv import load_dotenv
-
-SCOPES = ['https://www.googleapis.com/auth/contacts.readonly']
+from models.date import Date
+from services.contact_service import get_contacts
+from services.google_service import build_google_service, signin
+from services.whatsapp_service import send_whatsapp_message
 
 
-def get_credentials(auth_token_path, client_secret_path):
-    creds = None
-
-    if os.path.exists(auth_token_path):
-        creds = Credentials.from_authorized_user_file(auth_token_path, SCOPES)
-    if not creds or not creds.valid:
-        if creds and creds.expired and creds.refresh_token:
-            creds.refresh(Request())
-        else:
-            flow = InstalledAppFlow.from_client_secrets_file(client_secret_path, SCOPES)
-            creds = flow.run_local_server(port=0)
-        with open(auth_token_path, "w") as token:
-            token.write(creds.to_json())
-    return creds
-
-
-def get_people_service(creds):
-    return build("people", "v1", credentials=creds)
-
-
-def get_contacts(service):
-    contact_list = []
-    page_token = None
-
-    while True:
-        results = (
-            service.people()
-            .connections()
-            .list(
-                resourceName="people/me",
-                pageSize=10,
-                personFields="names,birthdays,phoneNumbers",
-                pageToken=page_token
-            )
-            .execute()
-        )
-        connections = results.get("connections", [])
-        contact_list.extend(connections)
-        page_token = results.get("nextPageToken", None)
-        if not page_token:
-            break
-    return contact_list
-
-
-def celebrates_birthday(date, current_date):
-    if date['month'] != current_date.month or date['day'] != current_date.day:
-        return False
-    return True
+def main() -> None:
+    credentials = signin("../token.json", "../client-secret.json")
+    service = build_google_service(credentials)
+    contacts = [x for x in get_contacts(service) if x.birthdate == Date.now()]
+    for contact in contacts:
+        message = f"La Multi Ani, {contact.name}!!!"
+        send_whatsapp_message(contact.phone_number, message)
 
 
 if __name__ == "__main__":
-    try:
-        load_dotenv()
-        credentials = get_credentials("../token.json", "../client-secret.json")
-        people_service = get_people_service(credentials)
-        contacts = get_contacts(people_service)
-        cdt = datetime.now()
-        msg = os.getenv("MESSAGE_TO_SEND")
-        for contact in contacts:
-            names = contact.get("names", [])
-            birthdays = contact.get("birthdays", [])
-            phone_numbers = contact.get("phoneNumbers", [])
-            if names and birthdays and phone_numbers:
-                name = names[0].get("displayName")
-                birthday = birthdays[0].get("date")
-                phone_number = phone_numbers[0].get("canonicalForm")
-                print(f"{name} with birthday on: {birthday} and phone number:{phone_number}")
-                if celebrates_birthday(birthday, cdt):
-                    pywhatkit.sendwhatmsg_instantly(phone_no=phone_number, message=msg)
-    except HttpError as error:
-        print(error)
+    main()

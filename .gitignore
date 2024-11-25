@@ -2,6 +2,7 @@
 .venv
 .env
 __pycache__
+ignorables
 client-secret.json
 token.json
 data.json
